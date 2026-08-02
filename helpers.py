@@ -34,24 +34,13 @@ def create_new_courier_data():
     return payload
 
 
-# метод регистрирует нового курьера и возвращает словарь с логином и паролем,
-# а если регистрация не удалась, поднимает ошибку с кодом и телом ответа
-def register_new_courier_and_return_login_password():
+# метод отправляет запрос на регистрацию курьера
+# и возвращает ответ сервера вместе с отправленными данными
+def register_new_courier():
     payload = create_new_courier_data()
+    response = requests.post(urls.COURIER_URL, data=payload)
 
-    response_register = requests.post(urls.COURIER_URL, data=payload)
-
-    if response_register.status_code != 201:
-        raise RuntimeError(
-            f'Не удалось зарегистрировать курьера: '
-            f'{response_register.status_code} {response_register.text}'
-        )
-
-    payload_for_login = {
-        "login": payload["login"],
-        "password": payload["password"]}
-
-    return payload_for_login
+    return response, payload
 
 
 def create_new_order_data():
@@ -77,14 +66,6 @@ def create_new_order_data():
 
 def create_new_order():
     payload = create_new_order_data()
-    response_create_order = requests.post(urls.ORDERS_URL, data=payload)
+    response = requests.post(urls.ORDERS_URL, data=payload)
 
-    if response_create_order.status_code != 201:
-        raise RuntimeError(
-            f'Не удалось создать заказ: '
-            f'{response_create_order.status_code} {response_create_order.text}'
-        )
-
-    track_number = response_create_order.json().get("track")
-
-    return track_number
+    return response

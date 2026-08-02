@@ -22,7 +22,7 @@ class TestCreateCourier:
 
         assert response.json() == {"ok": True}
 
-    @allure.title('Проверяем, что нельзя создать двух одинаковых курьеров')
+    @allure.title('Проверяем, что нельзя создать двух одинаковых курьеров и возвращается код 409')
     def test_create_courier_with_duplicate_login_returns_409(self, create_courier_data):
 
         requests.post(urls.COURIER_URL, data=create_courier_data)
@@ -30,13 +30,28 @@ class TestCreateCourier:
 
         assert response.status_code == 409
 
+    @allure.title('Проверяем, что нельзя создать двух одинаковых курьеров и возвращается сообщение о дубль логине')
+    def test_create_courier_with_duplicate_login_returns_mistake_message(self, create_courier_data):
+
+        requests.post(urls.COURIER_URL, data=create_courier_data)
+        response = requests.post(urls.COURIER_URL, data=create_courier_data)
+
+        assert 'Этот логин уже используется. Попробуйте другой.' in response.json()['message']
+
     @allure.title('Проверяем, что если поле {field} не заполнено, запрос возвращает ошибку 400')
-    @pytest.mark.parametrize('field', ['login', 'password', pytest.param('firstName', marks=pytest.mark.xfail(
-            strict=True,
-            reason='Баг: курьер создаётся без firstName, хотя документация помечает поле обязательным'))])
+    @pytest.mark.parametrize('field', ['login', 'password'])
     def test_create_courier_without_required_field_returns_400(self, create_courier_data, field):
 
         payload = {k: v for k, v in create_courier_data.items() if k != field}
 
         response = requests.post(urls.COURIER_URL, data=payload)
         assert response.status_code == 400
+
+    @allure.title('Проверяем, что если поле {field} не заполнено, возвращается сообщение о недостатке данных')
+    @pytest.mark.parametrize('field', ['login', 'password'])
+    def test_create_courier_without_required_field_returns_mistake_message(self, create_courier_data, field):
+
+        payload = {k: v for k, v in create_courier_data.items() if k != field}
+
+        response = requests.post(urls.COURIER_URL, data=payload)
+        assert 'Недостаточно данных для создания учетной записи' in response.json()['message']

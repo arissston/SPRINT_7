@@ -7,16 +7,21 @@ import helpers
 
 @pytest.fixture
 def create_courier():
-    payload = helpers.register_new_courier_and_return_login_password()
+    response, payload = helpers.register_new_courier()
+    assert response.status_code == 201, (f'Не удалось создать курьера: {response.status_code} {response.text}')
 
-    yield payload
+    login_payload = {
+        'login': payload['login'],
+        'password': payload['password']
+    }
 
-    # В teardown пытаемся залогиниться этими данными и удалить курьера, если он существует:
-    login_response = requests.post(urls.LOGIN_COURIER_URL, data=payload)
+    # id узнаём сразу, чтобы teardown не зависел от повторного логина
+    login_response = requests.post(urls.LOGIN_COURIER_URL, data=login_payload)
+    courier_id = login_response.json()['id']
 
-    if login_response.status_code == 200:
-        courier_id = login_response.json().get('id')
-        requests.delete(f'{urls.COURIER_URL}/{courier_id}')
+    yield login_payload
+
+    requests.delete(f'{urls.COURIER_URL}/{courier_id}')
 
 
 @pytest.fixture
@@ -34,13 +39,15 @@ def create_courier_data():
     login_response = requests.post(urls.LOGIN_COURIER_URL, data=login_payload)
 
     if login_response.status_code == 200:
-        courier_id = login_response.json().get("id")
+        courier_id = login_response.json()['id']
         requests.delete(f'{urls.COURIER_URL}/{courier_id}')
 
 
 @pytest.fixture
 def create_order():
-    track_number = helpers.create_new_order()
+    response = helpers.create_new_order()
+    assert response.status_code == 201, (f'Не удалось создать заказ: {response.status_code} {response.text}')
+    track_number = response.json()['track']
 
     yield track_number
 
