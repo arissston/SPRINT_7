@@ -1,9 +1,8 @@
 import allure
 import pytest
-import requests
 
-import urls
 import helpers
+from api import OrdersApi
 
 
 @allure.feature('Ручка «Создать заказ»')
@@ -18,7 +17,7 @@ class TestCreateOrder:
         payload = helpers.create_new_order_data()
         payload["color"] = color
 
-        response = requests.post(urls.ORDERS_URL, json=payload)
+        response = OrdersApi.create_order(payload)
 
         track_number = response.json().get("track")
         created_tracks.append(track_number)
@@ -32,7 +31,7 @@ class TestCreateOrder:
         payload = helpers.create_new_order_data()
         payload["color"] = color
 
-        response = requests.post(urls.ORDERS_URL, json=payload)
+        response = OrdersApi.create_order(payload)
 
         assert "track" in response.json()
 

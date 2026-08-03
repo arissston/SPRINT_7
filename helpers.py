@@ -1,9 +1,5 @@
-import requests
 import random
 import string
-
-import urls
-
 from datetime import date, timedelta
 
 
@@ -34,15 +30,6 @@ def create_new_courier_data():
     return payload
 
 
-# метод отправляет запрос на регистрацию курьера
-# и возвращает ответ сервера вместе с отправленными данными
-def register_new_courier():
-    payload = create_new_courier_data()
-    response = requests.post(urls.COURIER_URL, data=payload)
-
-    return response, payload
-
-
 def create_new_order_data():
 
     def get_tomorrow_date():
@@ -62,10 +49,3 @@ def create_new_order_data():
     }
 
     return payload
-
-
-def create_new_order():
-    payload = create_new_order_data()
-    response = requests.post(urls.ORDERS_URL, data=payload)
-
-    return response
